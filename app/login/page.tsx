@@ -1,88 +1,142 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import AuthInput from "@/app/components/auth/AuthInput";
-import AuthButton from "@/app/components/auth/AuthButton";
-import { AuthCard } from "@/app/components/auth/AuthCard";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
-import { signIn } from "@/app/services/auth.service";
+import { loginUser } from "@/app/services/auth.service";
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] =
-    useState("");
+  const [email, setEmail] = useState("");
 
-  const [password, setPassword] =
-    useState("");
+  const [password, setPassword] = useState("");
 
-  const [loading, setLoading] =
+  const [loading, setLoading] = useState(false);
+
+  const [showPassword, setShowPassword] =
     useState(false);
 
   async function handleLogin(
-    e: React.FormEvent
+    e: FormEvent<HTMLFormElement>
   ) {
     e.preventDefault();
 
     try {
       setLoading(true);
 
-      await signIn(email, password);
+      await loginUser(email, password);
 
       router.push("/");
-    } catch {
-      alert("Invalid credentials.");
+    } catch (error) {
+      console.error(error);
+
+      alert("Invalid email or password.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <AuthCard
-      title="Welcome Back"
-      subtitle="Sign in to ThreadLy."
-    >
-      <form
-        onSubmit={handleLogin}
-        className="space-y-5"
-      >
-        <AuthInput
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
-        />
+    <main className="flex min-h-screen items-center justify-center bg-black px-6">
+      <div className="w-full max-w-md rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
 
-        <AuthInput
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-        />
+        <h1 className="text-4xl font-bold text-white">
+          Welcome Back
+        </h1>
 
-        <AuthButton
-          loading={loading}
-          text="Login"
-          loadingText="Signing In..."
-        />
+        <p className="mt-2 mb-8 text-zinc-400">
+          Login to ThreadLy
+        </p>
 
-        <div className="text-center text-sm text-zinc-400">
-          Don't have an account?{" "}
-          <Link
-            href="/signup"
-            className="text-white hover:underline"
+        <form
+          onSubmit={handleLogin}
+          className="space-y-5"
+        >
+          <div>
+            <label className="mb-2 block text-sm text-zinc-300">
+              Email
+            </label>
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
+              className="h-12 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 text-white outline-none focus:border-white"
+            />
+          </div>
+
+          <div className="relative">
+            <label className="mb-2 block text-sm text-zinc-300">
+              Password
+            </label>
+
+            <input
+              type={
+                showPassword
+                  ? "text"
+                  : "password"
+              }
+              value={password}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
+              className="h-12 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 pr-12 text-white outline-none focus:border-white"
+            />
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowPassword(
+                  !showPassword
+                )
+              }
+              className="absolute right-4 top-[42px] text-zinc-400"
+            >
+              {showPassword ? (
+                <EyeOff size={18} />
+              ) : (
+                <Eye size={18} />
+              )}
+            </button>
+          </div>
+
+          <button
+            disabled={loading}
+            className="flex h-12 w-full items-center justify-center rounded-xl bg-white font-semibold text-black hover:opacity-90"
           >
-            Sign up
+            {loading ? (
+              <Loader2
+                className="animate-spin"
+              />
+            ) : (
+              "Login"
+            )}
+          </button>
+
+          <Link
+            href="/forgot-password"
+            className="block text-center text-sm text-zinc-400 hover:text-white"
+          >
+            Forgot Password?
           </Link>
-        </div>
-      </form>
-    </AuthCard>
+
+          <p className="text-center text-sm text-zinc-400">
+            Don't have an account?{" "}
+            <Link
+              href="/signup"
+              className="text-white hover:underline"
+            >
+              Sign Up
+            </Link>
+          </p>
+        </form>
+      </div>
+    </main>
   );
 }
